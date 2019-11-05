@@ -1,0 +1,17 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+asyncio="==3.4.3"
+aiohttp="==3.6.2"
+typing="==3.7.4.1"
+jsonrpcclient="==3.3.4"
+jsonrpcserver="==4.0.5"
+partial="==1.0"
+
+[dev-packages]
+
+[requires]
+python_version = "3.7"

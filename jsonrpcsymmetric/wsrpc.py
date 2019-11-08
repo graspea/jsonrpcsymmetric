@@ -51,7 +51,7 @@ class WebSocketConnection(object):
         try:
             # connect
             self.context.ws = await self.context.session.ws_connect(
-                                                url=self.config.url,
+                                                url=(self.config.url+self.config.connection_identity),
                                                 autoping=self.config.auto_ping,
                                                 timeout=self.config.timeout,
                                                 protocols=self.config.protocols,

@@ -19,13 +19,23 @@ from jsonrpcclient.requests import Request as ORequest
 
 @dataclass
 class ConnectionConfig:
+    """
+    url - URL to connect to, if you use connection_identity, it should be followed by "/",
+        because connect_ws(url=url+connection_identity)
+    session - aiohttp.ClientSession instance
+    methods - Handlers/Methods that are called -> RPC
+    connection_name - store connection under this name to app[connection_name]
+    connection_identity - concatenated to url, provides unique identification (MAC address, assigned number,
+        certificate number, etc.)
+    Rest is same for WebSocketResponse()
+    """
     url: str
     session: ClientSession
     methods: Methods
     connection_name: str = "ws-connection"
+    connection_identity: str = None
     auto_ping: bool = True
     timeout: float = 5.0
-    debug: bool = False
     protocols: Tuple = None
     receive_timeout: float = 600.0
     auto_close: bool = True

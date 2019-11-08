@@ -79,11 +79,11 @@ class WebSocketConnection(object):
             await incoming_handler
             # end script
         except ClientError as e:
-            self.context.log.info(e)
+            raise e
         except CancelledError as ce:
-            self.context.log.debug(ce)
+            raise ce
         except Exception as ee:
-            self.context.log.warning(ee)
+            raise ee
         finally:
             # clean everything
             try:
@@ -94,7 +94,6 @@ class WebSocketConnection(object):
             # close websocket
             if self.context is not None and self.context.ws is not None:
                 await self.context.ws.close(code=WSCloseCode.GOING_AWAY)
-            return
 
     def __clean_futures(self):
         for f in self.registered:

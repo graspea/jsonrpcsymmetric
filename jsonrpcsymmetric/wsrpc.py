@@ -49,9 +49,12 @@ class WebSocketConnection(object):
     async def handle(self):
         """Main handler"""
         try:
+            url = self.config.url
+            if self.config.connection_identity is not None:
+                url = str(self.config.url+self.config.connection_identity)
             # connect
             self.context.ws = await self.context.session.ws_connect(
-                                                url=(self.config.url+self.config.connection_identity),
+                                                url=url,
                                                 autoping=self.config.auto_ping,
                                                 timeout=self.config.timeout,
                                                 protocols=self.config.protocols,

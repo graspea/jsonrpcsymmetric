@@ -96,6 +96,7 @@ class WebSocketConnection(object):
                 self.context.log.debug(str(e))
             # close websocket
             if self.context is not None and self.context.ws is not None:
+                self.context.log.info("WebSocket connection sending: GOING AWAY")
                 await self.context.ws.close(code=WSCloseCode.GOING_AWAY)
 
     def __clean_futures(self):
@@ -110,28 +111,35 @@ class WebSocketConnection(object):
 
     async def incoming_handler(self):
         """Consume data from WS"""
-        async for msg in self.context.ws:
-            msg: WSMessage
-            if msg.type == aiohttp.WSMsgType.TEXT:
-                req = msg.data
-                rrd: Dict = json.loads(req)
-                if "error" in rrd:
-                    self.context.log.warning("OTHER: " + str(rrd))
-                elif "result" in rrd:
-                    await self.context.handle_result(OtherResponse(req))
-                else:
-                    response = await dispatch(req,
-                                              context=self.context,
-                                              debug=self.config.debug,
-                                              methods=self.context.methods)
-                    if response.wanted:
-                        await self.context.send_my_response(response)
+        try:
+            async for msg in self.context.ws:
+                msg: WSMessage
+                if msg.type == aiohttp.WSMsgType.TEXT:
+                    req = msg.data
+                    rrd: Dict = json.loads(req)
+                    if "error" in rrd:
+                        self.context.log.warning("OTHER: " + str(rrd))
+                    elif "result" in rrd:
+                        await self.context.handle_result(OtherResponse(req))
                     else:
-                        pass
-            elif msg.type == aiohttp.WSMsgType.CLOSED:
-                break  # wrapper takes care of ws closing
-            elif msg.type == aiohttp.WSMsgType.ERROR:
-                break  # wrapper takes care of ws closing
+                        response = await dispatch(req,
+                                                  context=self.context,
+                                                  debug=False,  # TODO do it in better way
+                                                  methods=self.context.methods)
+                        if response.wanted:
+                            await self.context.send_my_response(response)
+                        else:
+                            pass
+                elif msg.type == aiohttp.WSMsgType.CLOSED:
+                    self.context.log.info("WebSocked closed: " + str(msg.data))
+                    break
+                elif msg.type == aiohttp.WSMsgType.ERROR:
+                    self.context.log.error("WebSocked error: " + str(msg.data))
+                    break
+        except Exception as e:
+            self.context.log.error(str(e))
+        finally:
+            self.context.log.info("End of websocket incoming handler.")
 
     async def __add_future(self, op, val) -> Future:
         """To add long running future, independently of subscribe"""
